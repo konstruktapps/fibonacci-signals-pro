@@ -54,6 +54,7 @@ const Admin = () => {
           </TabsContent>
         </Tabs>
       </motion.div>
+      </div>
     </div>
   );
 };

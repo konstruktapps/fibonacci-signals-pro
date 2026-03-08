@@ -15,39 +15,30 @@ import { RefreshCw } from "lucide-react";
 
 const queryClient = new QueryClient();
 
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <RefreshCw className="w-6 h-6 text-primary animate-spin" />
+    </div>
+  );
+}
+
 function SubscriberRoute({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdmin(user?.id);
   const { hasActiveSubscription, loading: subLoading } = useSubscription(user?.id);
 
-  if (authLoading || adminLoading || subLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <RefreshCw className="w-6 h-6 text-primary animate-spin" />
-      </div>
-    );
-  }
-
+  if (authLoading || adminLoading || subLoading) return <LoadingScreen />;
   if (!user) return <Navigate to="/auth" replace />;
-  if (isAdmin) return <Navigate to="/admin" replace />;
-  if (!hasActiveSubscription) return <Navigate to="/checkout" replace />;
+  if (!isAdmin && !hasActiveSubscription) return <Navigate to="/checkout" replace />;
   return <>{children}</>;
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading: authLoading } = useAuth();
-  const { isAdmin, loading: adminLoading } = useAdmin(user?.id);
+  const { user, loading } = useAuth();
 
-  if (authLoading || adminLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <RefreshCw className="w-6 h-6 text-primary animate-spin" />
-      </div>
-    );
-  }
-
+  if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/auth" replace />;
-  if (isAdmin) return <Navigate to="/admin" replace />;
   return <>{children}</>;
 }
 
@@ -55,32 +46,17 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdmin(user?.id);
 
-  if (authLoading || adminLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <RefreshCw className="w-6 h-6 text-primary animate-spin" />
-      </div>
-    );
-  }
-
+  if (authLoading || adminLoading) return <LoadingScreen />;
   if (!user) return <Navigate to="/auth" replace />;
   if (!isAdmin) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading: authLoading } = useAuth();
-  const { isAdmin, loading: adminLoading } = useAdmin(user?.id);
+  const { user, loading } = useAuth();
 
-  if (authLoading || adminLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <RefreshCw className="w-6 h-6 text-primary animate-spin" />
-      </div>
-    );
-  }
-
-  if (user) return <Navigate to={isAdmin ? "/admin" : "/"} replace />;
+  if (loading) return <LoadingScreen />;
+  if (user) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
