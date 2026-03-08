@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Check, CreditCard, RefreshCw, Sparkles } from 'lucide-react';
+import { ArrowLeft, Check, CreditCard, LogOut, RefreshCw, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { z } from 'zod';
 
@@ -54,7 +54,7 @@ const formatCpf = (value: string) => {
 };
 
 const Checkout = () => {
-  const { user, session } = useAuth();
+  const { user, session, signOut } = useAuth();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
@@ -198,6 +198,10 @@ const Checkout = () => {
             <h1 className="text-lg font-bold text-foreground font-display">Escolha seu Plano</h1>
             <p className="text-xs text-muted-foreground">Acesso completo ao Fibonacci Analyzer</p>
           </div>
+          <Button variant="ghost" size="sm" onClick={signOut} className="ml-auto gap-1 text-muted-foreground hover:text-foreground">
+            <LogOut className="w-4 h-4" />
+            Sair
+          </Button>
         </div>
 
         {/* Plans */}
