@@ -15,6 +15,18 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Validate webhook token
+    const webhookSecret = Deno.env.get("ASAAS_WEBHOOK_SECRET");
+    const token = new URL(req.url).searchParams.get("token");
+    
+    if (webhookSecret && token !== webhookSecret) {
+      console.error("Invalid webhook token");
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     const event = body.event;
 
@@ -29,7 +41,7 @@ Deno.serve(async (req) => {
     if (event === "PAYMENT_CONFIRMED" || event === "PAYMENT_RECEIVED") {
       const subscriptionId = body.payment?.subscription;
       if (subscriptionId) {
-        await supabase
+        const { error } = await supabase
           .from("subscriptions")
           .update({
             status: "active",
@@ -37,7 +49,7 @@ Deno.serve(async (req) => {
           })
           .eq("asaas_subscription_id", subscriptionId);
 
-        console.log(`Subscription ${subscriptionId} activated`);
+        console.log(`Subscription ${subscriptionId} activated`, error ? `Error: ${error.message}` : "OK");
       }
     }
 
