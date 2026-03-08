@@ -15,6 +15,24 @@ import { RefreshCw } from "lucide-react";
 
 const queryClient = new QueryClient();
 
+function SubscriberRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdmin();
+  const { hasActiveSubscription, loading: subLoading } = useSubscription();
+
+  if (authLoading || adminLoading || subLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <RefreshCw className="w-6 h-6 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/auth" replace />;
+  if (!isAdmin && !hasActiveSubscription) return <Navigate to="/checkout" replace />;
+  return <>{children}</>;
+}
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
