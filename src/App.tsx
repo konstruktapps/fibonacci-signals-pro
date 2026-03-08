@@ -29,7 +29,8 @@ function SubscriberRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) return <Navigate to="/auth" replace />;
-  if (!isAdmin && !hasActiveSubscription) return <Navigate to="/checkout" replace />;
+  if (isAdmin) return <Navigate to="/admin" replace />;
+  if (!hasActiveSubscription) return <Navigate to="/checkout" replace />;
   return <>{children}</>;
 }
 
