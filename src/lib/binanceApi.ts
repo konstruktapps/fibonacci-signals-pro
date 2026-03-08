@@ -13,10 +13,10 @@ const TIMEFRAME_MAP: Record<string, string> = {
 
 // brapi.dev range+interval mapping
 const BRAPI_TIMEFRAME_MAP: Record<string, { range: string; interval: string }> = {
-  M5: { range: '1d', interval: '5m' },
-  M15: { range: '5d', interval: '15m' },
-  H1: { range: '1mo', interval: '1h' },
-  H4: { range: '3mo', interval: '1d' }, // brapi doesn't have 4h, use 1d as fallback
+  M5: { range: '5d', interval: '1d' },
+  M15: { range: '5d', interval: '1d' },
+  H1: { range: '1mo', interval: '1d' },
+  H4: { range: '3mo', interval: '1d' },
   D1: { range: '6mo', interval: '1d' },
 };
 
