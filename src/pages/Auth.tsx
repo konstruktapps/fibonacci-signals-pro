@@ -18,10 +18,25 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+
+        const userId = data.user?.id;
+        let isAdmin = false;
+
+        if (userId) {
+          const { data: adminRole } = await supabase
+            .from('user_roles')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('role', 'admin')
+            .maybeSingle();
+
+          isAdmin = !!adminRole;
+        }
+
         toast.success('Login realizado com sucesso!');
-        navigate('/');
+        navigate(isAdmin ? '/admin' : '/');
       } else {
         const { data, error } = await supabase.auth.signUp({
           email,
