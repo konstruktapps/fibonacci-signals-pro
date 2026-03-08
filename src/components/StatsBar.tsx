@@ -4,10 +4,15 @@ import { TrendingUp, TrendingDown, BarChart3, Zap } from 'lucide-react';
 interface StatsBarProps {
   candles: OHLCVCandle[];
   signals: TradingSignal[];
+  decimals?: number;
+  currency?: string;
 }
 
-export default function StatsBar({ candles, signals }: StatsBarProps) {
+export default function StatsBar({ candles, signals, decimals = 5, currency = 'USD' }: StatsBarProps) {
   if (candles.length === 0) return null;
+
+  const prefix = currency === 'BRL' ? 'R$ ' : '$';
+  const fmt = (v: number) => `${prefix}${v.toFixed(decimals)}`;
 
   const last = candles[candles.length - 1];
   const prev = candles[candles.length - 2];
@@ -26,7 +31,7 @@ export default function StatsBar({ candles, signals }: StatsBarProps) {
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground">Preço</span>
         <span className="font-display font-bold text-lg text-foreground">
-          ${last.close.toFixed(5)}
+          {fmt(last.close)}
         </span>
         <span className={`flex items-center gap-0.5 font-display text-xs font-medium ${
           isUp ? 'text-success' : 'text-destructive'
@@ -37,13 +42,13 @@ export default function StatsBar({ candles, signals }: StatsBarProps) {
       </div>
 
       <div className="flex items-center gap-1 text-xs">
-        <span className="text-muted-foreground">24h High:</span>
-        <span className="font-display text-success">${high24.toFixed(5)}</span>
+        <span className="text-muted-foreground">High:</span>
+        <span className="font-display text-success">{fmt(high24)}</span>
       </div>
 
       <div className="flex items-center gap-1 text-xs">
-        <span className="text-muted-foreground">24h Low:</span>
-        <span className="font-display text-destructive">${low24.toFixed(5)}</span>
+        <span className="text-muted-foreground">Low:</span>
+        <span className="font-display text-destructive">{fmt(low24)}</span>
       </div>
 
       <div className="flex items-center gap-1 text-xs">

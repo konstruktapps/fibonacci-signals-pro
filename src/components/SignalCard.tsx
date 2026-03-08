@@ -5,10 +5,12 @@ import { ArrowUpRight, ArrowDownRight, Target, ShieldAlert } from 'lucide-react'
 interface SignalCardProps {
   signal: TradingSignal;
   index: number;
+  decimals?: number;
 }
 
-export default function SignalCard({ signal, index }: SignalCardProps) {
+export default function SignalCard({ signal, index, decimals = 5 }: SignalCardProps) {
   const isLong = signal.type === 'long';
+  const fmt = (v: number) => v.toFixed(decimals);
 
   return (
     <motion.div
@@ -48,19 +50,19 @@ export default function SignalCard({ signal, index }: SignalCardProps) {
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
           <span className="text-muted-foreground">Entrada</span>
-          <span className="font-display font-medium">${signal.entry.toFixed(5)}</span>
+          <span className="font-display font-medium">{fmt(signal.entry)}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground flex items-center gap-1">
             <ShieldAlert className="w-3 h-3" /> Stop Loss
           </span>
-          <span className="font-display text-destructive">${signal.stopLoss.toFixed(5)}</span>
+          <span className="font-display text-destructive">{fmt(signal.stopLoss)}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground flex items-center gap-1">
             <Target className="w-3 h-3" /> Take Profit
           </span>
-          <span className="font-display text-success">${signal.takeProfit.toFixed(5)}</span>
+          <span className="font-display text-success">{fmt(signal.takeProfit)}</span>
         </div>
         <div className="flex justify-between pt-1 border-t border-border">
           <span className="text-muted-foreground">R:R</span>
