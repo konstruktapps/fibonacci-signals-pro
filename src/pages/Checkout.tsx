@@ -99,26 +99,16 @@ const Checkout = () => {
     setSubmitting(true);
 
     try {
-      // 1. Create customer in Asaas
-      const customerRes = await supabase.functions.invoke('asaas-api', {
-        body: {
-          name: nameResult.data,
-          email: user?.email,
-          cpfCnpj: cpfResult.data,
-          phone: phone.replace(/\D/g, '') || undefined,
-        },
-        headers: { 'x-action': 'unused' },
-      });
-
-      // Override the action via query param workaround - use fetch directly
-      const baseUrl = `https://wvulxuatpvduyahebeah.supabase.co/functions/v1`;
+      const baseUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
       const token = session?.access_token;
 
+      // 1. Create customer in Asaas
       const custResponse = await fetch(`${baseUrl}/asaas-api?action=create-customer`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({
           name: nameResult.data,
