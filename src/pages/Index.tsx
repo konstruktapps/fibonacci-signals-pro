@@ -20,7 +20,6 @@ import { Activity, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 
 const Index = () => {
   const { signOut } = useAuth();
-  const { isAdmin } = useAdmin();
   const [timeframe, setTimeframe] = useState('H1');
   const [selectedSymbol, setSelectedSymbol] = useState('WDO');
   const [candles, setCandles] = useState<OHLCVCandle[]>([]);
