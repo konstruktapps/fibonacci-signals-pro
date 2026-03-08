@@ -1,7 +1,7 @@
 import { OHLCVCandle } from './fibonacci';
 
 const BINANCE_BASE = 'https://api.binance.com/api/v3';
-const BRAPI_BASE = 'https://brapi.dev/api';
+const AWESOME_API_BASE = 'https://economia.awesomeapi.com.br/json';
 
 const TIMEFRAME_MAP: Record<string, string> = {
   M5: '5m',
@@ -11,13 +11,13 @@ const TIMEFRAME_MAP: Record<string, string> = {
   D1: '1d',
 };
 
-// brapi.dev range+interval mapping
-const BRAPI_TIMEFRAME_MAP: Record<string, { range: string; interval: string }> = {
-  M5: { range: '5d', interval: '1d' },
-  M15: { range: '5d', interval: '1d' },
-  H1: { range: '1mo', interval: '1d' },
-  H4: { range: '3mo', interval: '1d' },
-  D1: { range: '6mo', interval: '1d' },
+// AwesomeAPI days mapping per timeframe (daily data only)
+const AWESOME_DAYS_MAP: Record<string, number> = {
+  M5: 15,
+  M15: 30,
+  H1: 60,
+  H4: 120,
+  D1: 200,
 };
 
 export async function fetchBinanceCandles(
@@ -45,62 +45,57 @@ export async function fetchBinanceCandles(
   }));
 }
 
-export async function fetchBrapiCandles(
+// Fetch USD/BRL daily data from AwesomeAPI (free, no auth)
+// WDO = USD/BRL * 1000, DOL = USD/BRL * 1000
+export async function fetchAwesomeApiCandles(
   symbol: string,
   timeframe: string
 ): Promise<OHLCVCandle[]> {
-  const token = import.meta.env.VITE_BRAPI_TOKEN;
-  if (!token) {
-    throw new Error('Token brapi.dev não configurado (VITE_BRAPI_TOKEN)');
-  }
-
-  const tf = BRAPI_TIMEFRAME_MAP[timeframe] || BRAPI_TIMEFRAME_MAP['H1'];
-  const url = `${BRAPI_BASE}/quote/${symbol}?range=${tf.range}&interval=${tf.interval}&token=${token}`;
+  const days = AWESOME_DAYS_MAP[timeframe] || 60;
+  const url = `${AWESOME_API_BASE}/daily/USD-BRL/${days}`;
 
   const response = await fetch(url);
   if (!response.ok) {
-    if (response.status === 404) {
-      throw new Error(`Ticker "${symbol}" não encontrado na brapi.dev`);
-    }
-    if (response.status === 401) {
-      throw new Error('Token brapi.dev inválido ou expirado');
-    }
-    if (response.status === 402) {
-      throw new Error('Limite de requisições brapi.dev excedido');
-    }
-    throw new Error(`brapi.dev API error: ${response.status}`);
+    throw new Error(`AwesomeAPI error: ${response.status}`);
   }
 
   const data = await response.json();
-  const result = data.results?.[0];
 
-  if (!result || !result.historicalDataPrice || result.historicalDataPrice.length === 0) {
-    throw new Error(`Sem dados históricos para "${symbol}" no período selecionado`);
+  if (!Array.isArray(data) || data.length === 0) {
+    throw new Error('Sem dados de USD/BRL disponíveis');
   }
 
-  return result.historicalDataPrice.map((h: any) => ({
-    time: h.date,
-    open: h.open,
-    high: h.high,
-    low: h.low,
-    close: h.close,
-    volume: h.volume || 0,
-  }));
+  // Multiplier: WDO/DOL are quoted as BRL per USD*1000
+  const multiplier = 1000;
+
+  // Data comes newest first, reverse for chronological order
+  const candles: OHLCVCandle[] = data
+    .map((d: any) => ({
+      time: parseInt(d.timestamp),
+      open: parseFloat(d.bid) * multiplier, // bid as approximate open
+      high: parseFloat(d.high) * multiplier,
+      low: parseFloat(d.low) * multiplier,
+      close: parseFloat(d.bid) * multiplier,
+      volume: 0, // AwesomeAPI doesn't provide volume
+    }))
+    .reverse();
+
+  return candles;
 }
 
 export interface AssetConfig {
   symbol: string;
   label: string;
-  source: 'binance' | 'brapi';
+  source: 'binance' | 'awesome-api';
   category: 'crypto' | 'b3-futures';
   decimals: number;
   currency: string;
 }
 
 export const AVAILABLE_ASSETS: AssetConfig[] = [
-  // B3 Futuros (brapi.dev)
-  { symbol: 'WDOFUT', label: 'Mini Dólar (WDO)', source: 'brapi', category: 'b3-futures', decimals: 2, currency: 'BRL' },
-  { symbol: 'DOLFUT', label: 'Dólar Futuro (DOL)', source: 'brapi', category: 'b3-futures', decimals: 2, currency: 'BRL' },
+  // B3 Futuros (via AwesomeAPI USD/BRL)
+  { symbol: 'WDO', label: 'Mini Dólar (WDO)', source: 'awesome-api', category: 'b3-futures', decimals: 1, currency: 'BRL' },
+  { symbol: 'DOL', label: 'Dólar Futuro (DOL)', source: 'awesome-api', category: 'b3-futures', decimals: 1, currency: 'BRL' },
   // Crypto
   { symbol: 'BTCUSDT', label: 'BTC/USDT', source: 'binance', category: 'crypto', decimals: 2, currency: 'USD' },
   { symbol: 'ETHUSDT', label: 'ETH/USDT', source: 'binance', category: 'crypto', decimals: 2, currency: 'USD' },
@@ -120,5 +115,5 @@ export async function fetchCandles(
   if (asset.source === 'binance') {
     return fetchBinanceCandles(asset.symbol, timeframe, limit);
   }
-  return fetchBrapiCandles(asset.symbol, timeframe);
+  return fetchAwesomeApiCandles(asset.symbol, timeframe);
 }

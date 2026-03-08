@@ -63,7 +63,7 @@ const Index = () => {
 
   const currentPrice = candles.length > 0 ? candles[candles.length - 1].close : 0;
 
-  const sourceLabel = asset.source === 'brapi' ? 'B3 (brapi.dev)' : 'Binance';
+  const sourceLabel = asset.source === 'awesome-api' ? 'B3 (USD/BRL)' : 'Binance';
 
   const formatPrice = useCallback((price: number) => {
     return price.toFixed(asset.decimals);
