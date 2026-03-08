@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/hooks/useAuth';
 import TradingChart from '@/components/TradingChart';
 import SignalCard from '@/components/SignalCard';
 import FibLevelsPanel from '@/components/FibLevelsPanel';
@@ -14,9 +15,10 @@ import {
   calculateFibonacciLevels,
   generateSignals,
 } from '@/lib/fibonacci';
-import { Activity, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { Activity, RefreshCw, Wifi, WifiOff, LogOut } from 'lucide-react';
 
 const Index = () => {
+  const { signOut } = useAuth();
   const [timeframe, setTimeframe] = useState('H1');
   const [selectedSymbol, setSelectedSymbol] = useState('WDO');
   const [candles, setCandles] = useState<OHLCVCandle[]>([]);
@@ -115,6 +117,13 @@ const Index = () => {
               </>
             )}
           </div>
+          <button
+            onClick={signOut}
+            className="p-1.5 rounded bg-secondary text-secondary-foreground hover:bg-destructive/20 hover:text-destructive transition-colors"
+            title="Sair"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </motion.div>
 
