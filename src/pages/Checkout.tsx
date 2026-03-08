@@ -127,6 +127,7 @@ const Checkout = () => {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({
           customerId: custData.customer.id,
