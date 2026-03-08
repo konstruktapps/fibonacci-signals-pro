@@ -198,6 +198,10 @@ const Checkout = () => {
             <h1 className="text-lg font-bold text-foreground font-display">Escolha seu Plano</h1>
             <p className="text-xs text-muted-foreground">Acesso completo ao Fibonacci Analyzer</p>
           </div>
+          <Button variant="ghost" size="sm" onClick={signOut} className="ml-auto gap-1 text-muted-foreground hover:text-foreground">
+            <LogOut className="w-4 h-4" />
+            Sair
+          </Button>
         </div>
 
         {/* Plans */}
