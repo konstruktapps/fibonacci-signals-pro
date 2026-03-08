@@ -1,8 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/hooks/useAuth';
-import { useAdmin } from '@/hooks/useAdmin';
-import { Link } from 'react-router-dom';
+
+import { AppHeader } from '@/components/AppHeader';
 import TradingChart from '@/components/TradingChart';
 import SignalCard from '@/components/SignalCard';
 import FibLevelsPanel from '@/components/FibLevelsPanel';
@@ -17,11 +16,10 @@ import {
   calculateFibonacciLevels,
   generateSignals,
 } from '@/lib/fibonacci';
-import { Activity, RefreshCw, Wifi, WifiOff, LogOut, Shield } from 'lucide-react';
+import { Activity, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 
 const Index = () => {
-  const { signOut } = useAuth();
-  const { isAdmin } = useAdmin();
+  
   const [timeframe, setTimeframe] = useState('H1');
   const [selectedSymbol, setSelectedSymbol] = useState('WDO');
   const [candles, setCandles] = useState<OHLCVCandle[]>([]);
@@ -75,8 +73,9 @@ const Index = () => {
   }, [asset.decimals]);
 
   return (
-    <div className="min-h-screen bg-background p-4 lg:p-6">
-      {/* Header */}
+    <div className="min-h-screen bg-background">
+      <AppHeader />
+      <div className="p-4 lg:p-6">
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -120,22 +119,6 @@ const Index = () => {
               </>
             )}
           </div>
-          {isAdmin && (
-            <Link
-              to="/admin"
-              className="p-1.5 rounded bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
-              title="Painel Admin"
-            >
-              <Shield className="w-4 h-4" />
-            </Link>
-          )}
-          <button
-            onClick={signOut}
-            className="p-1.5 rounded bg-secondary text-secondary-foreground hover:bg-destructive/20 hover:text-destructive transition-colors"
-            title="Sair"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
         </div>
       </motion.div>
 
@@ -220,6 +203,7 @@ const Index = () => {
           </div>
         )}
       </motion.div>
+      </div>
     </div>
   );
 };
