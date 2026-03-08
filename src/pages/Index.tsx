@@ -117,7 +117,13 @@ const Index = () => {
               </>
             )}
           </div>
-        </div>
+          <button
+            onClick={signOut}
+            className="p-1.5 rounded bg-secondary text-secondary-foreground hover:bg-destructive/20 hover:text-destructive transition-colors"
+            title="Sair"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
       </motion.div>
 
       {/* Error */}
