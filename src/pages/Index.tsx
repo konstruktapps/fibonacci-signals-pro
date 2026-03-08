@@ -73,8 +73,9 @@ const Index = () => {
   }, [asset.decimals]);
 
   return (
-    <div className="min-h-screen bg-background p-4 lg:p-6">
-      {/* Header */}
+    <div className="min-h-screen bg-background">
+      <AppHeader />
+      <div className="p-4 lg:p-6">
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
