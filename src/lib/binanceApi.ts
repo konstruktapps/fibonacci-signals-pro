@@ -1,6 +1,7 @@
 import { OHLCVCandle } from './fibonacci';
 
 const BINANCE_BASE = 'https://api.binance.com/api/v3';
+const BRAPI_BASE = 'https://brapi.dev/api';
 
 const TIMEFRAME_MAP: Record<string, string> = {
   M5: '5m',
@@ -8,6 +9,15 @@ const TIMEFRAME_MAP: Record<string, string> = {
   H1: '1h',
   H4: '4h',
   D1: '1d',
+};
+
+// brapi.dev range+interval mapping
+const BRAPI_TIMEFRAME_MAP: Record<string, { range: string; interval: string }> = {
+  M5: { range: '1d', interval: '5m' },
+  M15: { range: '5d', interval: '15m' },
+  H1: { range: '1mo', interval: '1h' },
+  H4: { range: '3mo', interval: '1d' }, // brapi doesn't have 4h, use 1d as fallback
+  D1: { range: '6mo', interval: '1d' },
 };
 
 export async function fetchBinanceCandles(
@@ -35,66 +45,62 @@ export async function fetchBinanceCandles(
   }));
 }
 
-// Mock data for B3 futures (no free public API)
-export function generateB3MockCandles(
+export async function fetchBrapiCandles(
   symbol: string,
-  timeframe: string,
-  count: number = 200
-): OHLCVCandle[] {
-  const now = Math.floor(Date.now() / 1000);
-  const intervals: Record<string, number> = {
-    M5: 300, M15: 900, H1: 3600, H4: 14400, D1: 86400,
-  };
-  const interval = intervals[timeframe] || 3600;
-
-  // WDO ~5800 pts, DOL ~5800 pts (same underlying, different contract size)
-  const basePrice = symbol === 'WDO' ? 5780 : 5780;
-  const tickSize = 0.5; // B3 mini dólar tick
-  const candles: OHLCVCandle[] = [];
-  let price = basePrice + (Math.random() - 0.5) * 50;
-
-  for (let i = 0; i < count; i++) {
-    const time = now - (count - i) * interval;
-
-    // Simulate B3 trading hours (skip weekends roughly)
-    const trend = Math.sin(i / 25) * 8 + Math.sin(i / 60) * 15;
-    const volatility = 3 + Math.random() * 6;
-
-    const change = trend * 0.1 + (Math.random() - 0.48) * volatility;
-    price = Math.max(basePrice - 200, Math.min(basePrice + 200, price + change));
-
-    // Round to tick size
-    const roundToTick = (v: number) => Math.round(v / tickSize) * tickSize;
-
-    const open = roundToTick(price);
-    const bodySize = (Math.random() - 0.5) * volatility * 1.5;
-    const close = roundToTick(open + bodySize);
-    const wickUp = Math.random() * volatility * 0.6;
-    const wickDown = Math.random() * volatility * 0.6;
-    const high = roundToTick(Math.max(open, close) + wickUp);
-    const low = roundToTick(Math.min(open, close) - wickDown);
-    const volume = Math.round(5000 + Math.random() * 30000);
-
-    candles.push({ time, open, high, low, close, volume });
-    price = close;
+  timeframe: string
+): Promise<OHLCVCandle[]> {
+  const token = import.meta.env.VITE_BRAPI_TOKEN;
+  if (!token) {
+    throw new Error('Token brapi.dev não configurado (VITE_BRAPI_TOKEN)');
   }
 
-  return candles;
+  const tf = BRAPI_TIMEFRAME_MAP[timeframe] || BRAPI_TIMEFRAME_MAP['H1'];
+  const url = `${BRAPI_BASE}/quote/${symbol}?range=${tf.range}&interval=${tf.interval}&token=${token}`;
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error(`Ticker "${symbol}" não encontrado na brapi.dev`);
+    }
+    if (response.status === 401) {
+      throw new Error('Token brapi.dev inválido ou expirado');
+    }
+    if (response.status === 402) {
+      throw new Error('Limite de requisições brapi.dev excedido');
+    }
+    throw new Error(`brapi.dev API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const result = data.results?.[0];
+
+  if (!result || !result.historicalDataPrice || result.historicalDataPrice.length === 0) {
+    throw new Error(`Sem dados históricos para "${symbol}" no período selecionado`);
+  }
+
+  return result.historicalDataPrice.map((h: any) => ({
+    time: h.date,
+    open: h.open,
+    high: h.high,
+    low: h.low,
+    close: h.close,
+    volume: h.volume || 0,
+  }));
 }
 
 export interface AssetConfig {
   symbol: string;
   label: string;
-  source: 'binance' | 'b3-mock';
+  source: 'binance' | 'brapi';
   category: 'crypto' | 'b3-futures';
   decimals: number;
   currency: string;
 }
 
 export const AVAILABLE_ASSETS: AssetConfig[] = [
-  // B3 Futuros
-  { symbol: 'WDO', label: 'Mini Dólar (WDO)', source: 'b3-mock', category: 'b3-futures', decimals: 1, currency: 'BRL' },
-  { symbol: 'DOL', label: 'Dólar Futuro (DOL)', source: 'b3-mock', category: 'b3-futures', decimals: 1, currency: 'BRL' },
+  // B3 Futuros (brapi.dev)
+  { symbol: 'WDOFUT', label: 'Mini Dólar (WDO)', source: 'brapi', category: 'b3-futures', decimals: 2, currency: 'BRL' },
+  { symbol: 'DOLFUT', label: 'Dólar Futuro (DOL)', source: 'brapi', category: 'b3-futures', decimals: 2, currency: 'BRL' },
   // Crypto
   { symbol: 'BTCUSDT', label: 'BTC/USDT', source: 'binance', category: 'crypto', decimals: 2, currency: 'USD' },
   { symbol: 'ETHUSDT', label: 'ETH/USDT', source: 'binance', category: 'crypto', decimals: 2, currency: 'USD' },
@@ -114,6 +120,5 @@ export async function fetchCandles(
   if (asset.source === 'binance') {
     return fetchBinanceCandles(asset.symbol, timeframe, limit);
   }
-  // B3 mock
-  return generateB3MockCandles(asset.symbol, timeframe, limit);
+  return fetchBrapiCandles(asset.symbol, timeframe);
 }

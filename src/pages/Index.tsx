@@ -63,8 +63,7 @@ const Index = () => {
 
   const currentPrice = candles.length > 0 ? candles[candles.length - 1].close : 0;
 
-  const isMock = asset.source === 'b3-mock';
-  const sourceLabel = isMock ? 'B3 (Simulado)' : 'Binance';
+  const sourceLabel = asset.source === 'brapi' ? 'B3 (brapi.dev)' : 'Binance';
 
   const formatPrice = useCallback((price: number) => {
     return price.toFixed(asset.decimals);
