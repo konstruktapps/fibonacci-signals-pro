@@ -24,7 +24,7 @@ export default function StatsBar({ candles, signals }: StatsBarProps) {
   return (
     <div className="flex flex-wrap gap-4 lg:gap-6 text-sm">
       <div className="flex items-center gap-2">
-        <span className="text-muted-foreground">SDC/USDT</span>
+        <span className="text-muted-foreground">Preço</span>
         <span className="font-display font-bold text-lg text-foreground">
           ${last.close.toFixed(5)}
         </span>
