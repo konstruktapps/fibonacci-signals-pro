@@ -54,7 +54,7 @@ const formatCpf = (value: string) => {
 };
 
 const Checkout = () => {
-  const { user, session } = useAuth();
+  const { user, session, signOut } = useAuth();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
