@@ -1,6 +1,8 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdmin } from '@/hooks/useAdmin';
+import { Link } from 'react-router-dom';
 import TradingChart from '@/components/TradingChart';
 import SignalCard from '@/components/SignalCard';
 import FibLevelsPanel from '@/components/FibLevelsPanel';
