@@ -16,7 +16,7 @@ import {
   calculateFibonacciLevels,
   generateSignals,
 } from '@/lib/fibonacci';
-import { Activity, RefreshCw, Wifi, WifiOff, LogOut, Shield } from 'lucide-react';
+import { Activity, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 
 const Index = () => {
   const { signOut } = useAuth();
