@@ -63,8 +63,7 @@ const Index = () => {
 
   const currentPrice = candles.length > 0 ? candles[candles.length - 1].close : 0;
 
-  const isMock = asset.source === 'b3-mock';
-  const sourceLabel = isMock ? 'B3 (Simulado)' : 'Binance';
+  const sourceLabel = asset.source === 'brapi' ? 'B3 (brapi.dev)' : 'Binance';
 
   const formatPrice = useCallback((price: number) => {
     return price.toFixed(asset.decimals);
@@ -109,11 +108,6 @@ const Index = () => {
           <div className="flex items-center gap-1.5">
             {error ? (
               <WifiOff className="w-3.5 h-3.5 text-destructive" />
-            ) : isMock ? (
-              <>
-                <span className="w-2 h-2 rounded-full bg-accent animate-pulse-glow" />
-                <span className="text-xs text-muted-foreground font-display">DEMO</span>
-              </>
             ) : (
               <>
                 <Wifi className="w-3.5 h-3.5 text-success" />
