@@ -16,9 +16,10 @@ const FIB_COLOR_CLASS: Record<string, string> = {
 interface FibLevelsPanelProps {
   levels: FibonacciLevel[];
   currentPrice: number;
+  decimals?: number;
 }
 
-export default function FibLevelsPanel({ levels, currentPrice }: FibLevelsPanelProps) {
+export default function FibLevelsPanel({ levels, currentPrice, decimals = 5 }: FibLevelsPanelProps) {
   return (
     <div className="glass rounded-lg p-4">
       <h3 className="font-display text-sm font-semibold text-foreground mb-3">
@@ -45,7 +46,7 @@ export default function FibLevelsPanel({ levels, currentPrice }: FibLevelsPanelP
               </span>
               <div className="flex items-center gap-3">
                 <span className="font-display text-foreground">
-                  ${level.price.toFixed(5)}
+                  {level.price.toFixed(decimals)}
                 </span>
                 <span className={`font-display w-16 text-right ${
                   parseFloat(distance) > 0 ? 'text-success' : 'text-destructive'
