@@ -23,13 +23,18 @@ export default function Auth() {
         toast.success('Login realizado com sucesso!');
         navigate('/');
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: `${window.location.origin}/checkout` },
         });
         if (error) throw error;
-        toast.success('Cadastro realizado! Verifique seu email para confirmar.');
+        if (data.session) {
+          toast.success('Cadastro realizado! Complete seu plano.');
+          navigate('/checkout');
+        } else {
+          toast.success('Cadastro realizado! Verifique seu email para confirmar.');
+        }
       }
     } catch (err: any) {
       toast.error(err.message || 'Erro na autenticação');
