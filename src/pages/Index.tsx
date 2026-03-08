@@ -119,22 +119,6 @@ const Index = () => {
               </>
             )}
           </div>
-          {isAdmin && (
-            <Link
-              to="/admin"
-              className="p-1.5 rounded bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
-              title="Painel Admin"
-            >
-              <Shield className="w-4 h-4" />
-            </Link>
-          )}
-          <button
-            onClick={signOut}
-            className="p-1.5 rounded bg-secondary text-secondary-foreground hover:bg-destructive/20 hover:text-destructive transition-colors"
-            title="Sair"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
         </div>
       </motion.div>
 
