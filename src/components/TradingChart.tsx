@@ -1,5 +1,5 @@
 import { useEffect, useRef, memo } from 'react';
-import { createChart, IChartApi, ISeriesApi, CandlestickData, LineData, Time, CandlestickSeries, LineSeries } from 'lightweight-charts';
+import { createChart, IChartApi, ISeriesApi, CandlestickData, LineData, Time } from 'lightweight-charts';
 import { OHLCVCandle, FibonacciLevel } from '@/lib/fibonacci';
 
 interface TradingChartProps {
@@ -60,7 +60,7 @@ const TradingChart = memo(({ candles, fibLevels }: TradingChartProps) => {
 
     chartRef.current = chart;
 
-    const candleSeries = chart.addSeries(CandlestickSeries, {
+    const candleSeries = chart.addCandlestickSeries({
       upColor: '#22c55e',
       downColor: '#ef4444',
       borderDownColor: '#ef4444',
@@ -118,7 +118,7 @@ const TradingChart = memo(({ candles, fibLevels }: TradingChartProps) => {
 
     for (const fib of fibLevels) {
       const color = FIB_COLORS[fib.label] || '#6b7a8d';
-      const lineSeries = chartRef.current.addSeries(LineSeries, {
+      const lineSeries = chartRef.current.addLineSeries({
         color,
         lineWidth: 1,
         lineStyle: fib.type === 'extension' ? 2 : 0,
