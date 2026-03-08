@@ -1,0 +1,1 @@
+UPDATE subscriptions SET status = 'active', updated_at = now() WHERE id = 'cfacdaa6-a826-4d09-9180-23f77198387e' AND status = 'pending';
