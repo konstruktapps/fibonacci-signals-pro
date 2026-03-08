@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/hooks/useAuth';
+
 import { AppHeader } from '@/components/AppHeader';
 import TradingChart from '@/components/TradingChart';
 import SignalCard from '@/components/SignalCard';
