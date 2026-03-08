@@ -3,19 +3,18 @@ import { supabase } from '@/integrations/supabase/client';
 
 export function useSubscription(userId?: string) {
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [checkedUserId, setCheckedUserId] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
     if (!userId) {
       setHasActiveSubscription(false);
-      setLoading(false);
+      setCheckedUserId(null);
       return;
     }
 
     const check = async () => {
-      setLoading(true);
       const { data } = await supabase
         .from('subscriptions')
         .select('id')
@@ -26,7 +25,7 @@ export function useSubscription(userId?: string) {
 
       if (!isMounted) return;
       setHasActiveSubscription(!!data);
-      setLoading(false);
+      setCheckedUserId(userId);
     };
 
     check();
@@ -35,5 +34,5 @@ export function useSubscription(userId?: string) {
     };
   }, [userId]);
 
-  return { hasActiveSubscription, loading };
+  return { hasActiveSubscription, loading: !!userId && checkedUserId !== userId };
 }
