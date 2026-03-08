@@ -108,11 +108,6 @@ const Index = () => {
           <div className="flex items-center gap-1.5">
             {error ? (
               <WifiOff className="w-3.5 h-3.5 text-destructive" />
-            ) : isMock ? (
-              <>
-                <span className="w-2 h-2 rounded-full bg-accent animate-pulse-glow" />
-                <span className="text-xs text-muted-foreground font-display">DEMO</span>
-              </>
             ) : (
               <>
                 <Wifi className="w-3.5 h-3.5 text-success" />
