@@ -1,1 +1,7 @@
 project_id = "wvulxuatpvduyahebeah"
+
+[functions.asaas-api]
+verify_jwt = false
+
+[functions.asaas-webhook]
+verify_jwt = false
