@@ -4,9 +4,9 @@ import TradingChart from '@/components/TradingChart';
 import SignalCard from '@/components/SignalCard';
 import FibLevelsPanel from '@/components/FibLevelsPanel';
 import TimeframeSelector from '@/components/TimeframeSelector';
-import PairSelector from '@/components/PairSelector';
+import AssetSelector from '@/components/AssetSelector';
 import StatsBar from '@/components/StatsBar';
-import { fetchBinanceCandles, AVAILABLE_PAIRS, formatPairLabel } from '@/lib/binanceApi';
+import { fetchCandles, AVAILABLE_ASSETS, AssetConfig } from '@/lib/binanceApi';
 import {
   OHLCVCandle,
   detectSwings,
@@ -18,17 +18,22 @@ import { Activity, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 
 const Index = () => {
   const [timeframe, setTimeframe] = useState('H1');
-  const [pair, setPair] = useState('BTCUSDT');
+  const [selectedSymbol, setSelectedSymbol] = useState('WDO');
   const [candles, setCandles] = useState<OHLCVCandle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
+  const asset: AssetConfig = useMemo(
+    () => AVAILABLE_ASSETS.find(a => a.symbol === selectedSymbol) || AVAILABLE_ASSETS[0],
+    [selectedSymbol]
+  );
+
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchBinanceCandles(pair, timeframe, 200);
+      const data = await fetchCandles(asset, timeframe, 200);
       setCandles(data);
       setLastUpdate(new Date());
     } catch (e: any) {
@@ -36,11 +41,11 @@ const Index = () => {
     } finally {
       setLoading(false);
     }
-  }, [pair, timeframe]);
+  }, [asset, timeframe]);
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 30000); // refresh every 30s
+    const interval = setInterval(loadData, 30000);
     return () => clearInterval(interval);
   }, [loadData]);
 
@@ -57,6 +62,13 @@ const Index = () => {
   }, [candles]);
 
   const currentPrice = candles.length > 0 ? candles[candles.length - 1].close : 0;
+
+  const isMock = asset.source === 'b3-mock';
+  const sourceLabel = isMock ? 'B3 (Simulado)' : 'Binance';
+
+  const formatPrice = useCallback((price: number) => {
+    return price.toFixed(asset.decimals);
+  }, [asset.decimals]);
 
   return (
     <div className="min-h-screen bg-background p-4 lg:p-6">
@@ -75,17 +87,16 @@ const Index = () => {
               Fibonacci Analyzer
             </h1>
             <p className="text-xs text-muted-foreground">
-              {formatPairLabel(pair)} • Binance • Análise Automatizada
+              {asset.label} • {sourceLabel} • Análise Automatizada
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
-          <PairSelector
-            selected={pair}
-            onChange={setPair}
-            pairs={AVAILABLE_PAIRS}
-            formatLabel={formatPairLabel}
+          <AssetSelector
+            selected={selectedSymbol}
+            onChange={setSelectedSymbol}
+            assets={AVAILABLE_ASSETS}
           />
           <TimeframeSelector selected={timeframe} onChange={setTimeframe} />
           <button
@@ -98,12 +109,17 @@ const Index = () => {
           <div className="flex items-center gap-1.5">
             {error ? (
               <WifiOff className="w-3.5 h-3.5 text-destructive" />
+            ) : isMock ? (
+              <>
+                <span className="w-2 h-2 rounded-full bg-accent animate-pulse-glow" />
+                <span className="text-xs text-muted-foreground font-display">DEMO</span>
+              </>
             ) : (
-              <Wifi className="w-3.5 h-3.5 text-success" />
+              <>
+                <Wifi className="w-3.5 h-3.5 text-success" />
+                <span className="text-xs text-muted-foreground font-display">LIVE</span>
+              </>
             )}
-            <span className="text-xs text-muted-foreground font-display">
-              {error ? 'OFFLINE' : 'LIVE'}
-            </span>
           </div>
         </div>
       </motion.div>
@@ -123,7 +139,7 @@ const Index = () => {
         className="mb-4 glass rounded-lg px-4 py-3"
       >
         <div className="flex items-center justify-between">
-          <StatsBar candles={candles} signals={analysis?.signals || []} />
+          <StatsBar candles={candles} signals={analysis?.signals || []} decimals={asset.decimals} currency={asset.currency} />
           {lastUpdate && (
             <span className="text-xs text-muted-foreground font-display hidden lg:block">
               Atualizado: {lastUpdate.toLocaleTimeString('pt-BR')}
@@ -134,7 +150,6 @@ const Index = () => {
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        {/* Chart */}
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -146,20 +161,16 @@ const Index = () => {
               <RefreshCw className="w-8 h-8 text-primary animate-spin" />
             </div>
           )}
-          <TradingChart
-            candles={candles}
-            fibLevels={analysis?.fibLevels || []}
-          />
+          <TradingChart candles={candles} fibLevels={analysis?.fibLevels || []} />
         </motion.div>
 
-        {/* Fib Levels Panel */}
         <motion.div
           initial={{ opacity: 0, x: 10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
         >
           {analysis ? (
-            <FibLevelsPanel levels={analysis.fibLevels} currentPrice={currentPrice} />
+            <FibLevelsPanel levels={analysis.fibLevels} currentPrice={currentPrice} decimals={asset.decimals} />
           ) : (
             <div className="glass rounded-lg p-4 text-center text-muted-foreground text-sm">
               {loading ? 'Carregando...' : 'Sem dados para análise'}
@@ -168,7 +179,7 @@ const Index = () => {
         </motion.div>
       </div>
 
-      {/* Signals Section */}
+      {/* Signals */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -183,13 +194,13 @@ const Index = () => {
         {analysis && analysis.signals.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {analysis.signals.map((signal, i) => (
-              <SignalCard key={signal.id} signal={signal} index={i} />
+              <SignalCard key={signal.id} signal={signal} index={i} decimals={asset.decimals} />
             ))}
           </div>
         ) : (
           <div className="glass rounded-lg p-8 text-center">
             <p className="text-muted-foreground text-sm">
-              {loading ? 'Analisando dados...' : 'Nenhum sinal identificado no período atual. Aguarde novas confluências.'}
+              {loading ? 'Analisando dados...' : 'Nenhum sinal identificado no período atual.'}
             </p>
           </div>
         )}
