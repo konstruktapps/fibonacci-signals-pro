@@ -1,5 +1,5 @@
 import { useEffect, useRef, memo } from 'react';
-import { createChart, IChartApi, ISeriesApi, CandlestickData, LineData, Time } from 'lightweight-charts';
+import { createChart, IChartApi, ISeriesApi, CandlestickData, LineData, Time, CandlestickSeries, LineSeries } from 'lightweight-charts';
 import { OHLCVCandle, FibonacciLevel } from '@/lib/fibonacci';
 
 interface TradingChartProps {
@@ -60,7 +60,7 @@ const TradingChart = memo(({ candles, fibLevels }: TradingChartProps) => {
 
     chartRef.current = chart;
 
-    const candleSeries = chart.addCandlestickSeries({
+    const candleSeries = chart.addSeries(CandlestickSeries, {
       upColor: '#22c55e',
       downColor: '#ef4444',
       borderDownColor: '#ef4444',
@@ -90,7 +90,6 @@ const TradingChart = memo(({ candles, fibLevels }: TradingChartProps) => {
     };
   }, []);
 
-  // Update candle data
   useEffect(() => {
     if (!candleSeriesRef.current || candles.length === 0) return;
 
@@ -106,11 +105,9 @@ const TradingChart = memo(({ candles, fibLevels }: TradingChartProps) => {
     chartRef.current?.timeScale().fitContent();
   }, [candles]);
 
-  // Update fib levels
   useEffect(() => {
     if (!chartRef.current || candles.length === 0) return;
 
-    // Remove old lines
     for (const series of lineSeriesRefs.current) {
       chartRef.current.removeSeries(series);
     }
@@ -121,7 +118,7 @@ const TradingChart = memo(({ candles, fibLevels }: TradingChartProps) => {
 
     for (const fib of fibLevels) {
       const color = FIB_COLORS[fib.label] || '#6b7a8d';
-      const lineSeries = chartRef.current.addLineSeries({
+      const lineSeries = chartRef.current.addSeries(LineSeries, {
         color,
         lineWidth: 1,
         lineStyle: fib.type === 'extension' ? 2 : 0,
