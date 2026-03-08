@@ -124,6 +124,7 @@ const Index = () => {
           >
             <LogOut className="w-4 h-4" />
           </button>
+        </div>
       </motion.div>
 
       {/* Error */}
