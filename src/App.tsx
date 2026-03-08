@@ -29,14 +29,16 @@ function SubscriberRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) return <Navigate to="/auth" replace />;
-  if (!isAdmin && !hasActiveSubscription) return <Navigate to="/checkout" replace />;
+  if (isAdmin) return <Navigate to="/admin" replace />;
+  if (!hasActiveSubscription) return <Navigate to="/checkout" replace />;
   return <>{children}</>;
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdmin(user?.id);
 
-  if (loading) {
+  if (authLoading || adminLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <RefreshCw className="w-6 h-6 text-primary animate-spin" />
@@ -45,6 +47,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) return <Navigate to="/auth" replace />;
+  if (isAdmin) return <Navigate to="/admin" replace />;
   return <>{children}</>;
 }
 
@@ -66,9 +69,10 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdmin(user?.id);
 
-  if (loading) {
+  if (authLoading || adminLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <RefreshCw className="w-6 h-6 text-primary animate-spin" />
@@ -76,7 +80,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to={isAdmin ? "/admin" : "/"} replace />;
   return <>{children}</>;
 }
 
